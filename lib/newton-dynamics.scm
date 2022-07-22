@@ -153,8 +153,8 @@
       ;; multi threading interface
       ;NewtonWorldCriticalSectionLock
       ;NewtonWorldCriticalSectionUnlock
-      ;NewtonSetThreadsCount
-      ;NewtonGetThreadsCount
+      NewtonSetThreadsCount
+      NewtonGetThreadsCount
       ;NewtonGetMaxThreadsCount
       ;NewtonDispachThreadJob
       ;NewtonSyncThreadJobs
@@ -849,6 +849,9 @@
    (define NewtonUpdate (SO void "NewtonUpdate" NewtonWorld* dFloat))
    (define NewtonGetLastUpdateTime (SO dFloat "NewtonGetLastUpdateTime" NewtonWorld*))
 
+   (define NewtonSetThreadsCount (SO void "NewtonSetThreadsCount" NewtonWorld* int))
+   (define NewtonGetThreadsCount (SO int "NewtonGetThreadsCount" NewtonWorld*))
+
    (define NewtonWorldSetUserData (SO void "NewtonWorldSetUserData" NewtonWorld* void*))
    (define NewtonWorldGetUserData (SO void* "NewtonWorldGetUserData" NewtonWorld*))
 
@@ -860,7 +863,8 @@
       (make-callback (vm:pin (cons
          (cons dFloat (list
          ;  body        shapeHit         hitContact hitNormal collisionID userData intersectParam
-            NewtonBody* NewtonCollision* dFloat*    dFloat*   dLong       void*    dFloat))
+         ;                               dFloat*    dFloat*               void*
+            NewtonBody* NewtonCollision* void*      void*     dLong       int      dFloat))
          f))))
 
    (define *NewtonWorldRayPrefilterCallback type-callable)
@@ -871,7 +875,7 @@
             NewtonBody* NewtonCollision* void*))
          f))))
 
-   (define NewtonWorldRayCast (SO void "NewtonWorldRayCast" NewtonWorld* dFloat* dFloat* *NewtonWorldRayFilterCallback void* *NewtonWorldRayPrefilterCallback int))
+   (define NewtonWorldRayCast (SO void "NewtonWorldRayCast" NewtonWorld* dFloat* dFloat* *NewtonWorldRayFilterCallback int *NewtonWorldRayPrefilterCallback int))
 
    ;; ------------------------
    ;; Physics Material Section
