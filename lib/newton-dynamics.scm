@@ -40,6 +40,8 @@
       NewtonMaterial*
       NewtonMesh*
       NewtonJoint*
+      NewtonUserContactPoint*
+      NewtonContact*
 
       NewtonFracturedCompoundMeshPart*
 
@@ -95,7 +97,7 @@
       NewtonOnAABBOverlap
       NewtonContactsProcess
       NewtonOnCompoundSubCollisionAABBOverlap
-      ;NewtonOnContactGeneration
+      NewtonOnContactGeneration
       ;NewtonBodyIterator
       ;NewtonJointIterator
       ;NewtonCollisionIterator
@@ -220,7 +222,7 @@
       ;NewtonMaterialGetUserData
       ;NewtonMaterialSetSurfaceThickness
       ;NewtonMaterialSetCallbackUserData
-      ;NewtonMaterialSetContactGenerationCallback
+      NewtonMaterialSetContactGenerationCallback
       NewtonMaterialSetCompoundCollisionCallback
       NewtonMaterialSetCollisionCallback
       ;NewtonMaterialSetDefaultSoftness
@@ -390,10 +392,10 @@
       NewtonCollisionIsConvexShape
       NewtonCollisionIsStaticShape
 
-      ;NewtonCollisionSetUserData
-      ;NewtonCollisionGetUserData
-      ;NewtonCollisionSetUserID
-      ;NewtonCollisionGetUserID
+      NewtonCollisionSetUserData
+      NewtonCollisionGetUserData
+      NewtonCollisionSetUserID
+      NewtonCollisionGetUserID
       ;NewtonCollisionGetMaterial
       ;NewtonCollisionSetMaterial
       ;NewtonCollisionGetSubCollisionHandle
@@ -511,7 +513,7 @@
       ;NewtonBodyGetInvMass
       ;NewtonBodyGetInertiaMatrix
       ;NewtonBodyGetInvInetiaMatrix
-      ;NewtonBodyGetOmega
+      NewtonBodyGetOmega
       NewtonBodyGetVelocity
       ;NewtonBodyGetAlpha
       ;NewtonBodyGetAcceleration
@@ -539,18 +541,18 @@
       ;; contact joints interface
       ;; ------------------------
 
-      ;NewtonContactJointGetFirstContact
-      ;NewtonContactJointGetNextContact
-      ;NewtonContactJointGetContactCount
-      ;NewtonContactJointRemoveContact
-      ;NewtonContactJointGetClosestDistance
+      NewtonContactJointGetFirstContact
+      NewtonContactJointGetNextContact
+      NewtonContactJointGetContactCount
+      NewtonContactJointRemoveContact
+      NewtonContactJointGetClosestDistance
       ;NewtonContactJointResetSelftJointCollision
       ;NewtonContactJointResetIntraJointCollision
       ;NewtonContactGetMaterial
-      ;NewtonContactGetCollision0
-      ;NewtonContactGetCollision1
-      ;NewtonContactGetCollisionID0
-      ;NewtonContactGetCollisionID1
+      NewtonContactGetCollision0
+      NewtonContactGetCollision1
+      NewtonContactGetCollisionID0
+      NewtonContactGetCollisionID1
 
       ;; ----------------------
       ;; common joint functions
@@ -825,6 +827,8 @@
    (define NewtonMaterial* type-vptr)
    (define NewtonMesh* type-vptr)
    (define NewtonJoint* type-vptr)
+   (define NewtonUserContactPoint* type-vptr)
+   (define NewtonContact* type-vptr)
 
    (define NewtonFracturedCompoundMeshPart* type-vptr)
 
@@ -894,12 +898,23 @@
    (define *NewtonContactsProcess type-callable)
    (define (NewtonContactsProcess f)
       (make-callback (vm:pin (cons
-         (cons int (list
-         ;  contact      timestep threadIndex
+         (cons void (list
+         ;  joint        timestep threadIndex
             NewtonJoint* dFloat   int))
          f))))
 
    (define NewtonMaterialSetCollisionCallback (newton void "NewtonMaterialSetCollisionCallback" NewtonWorld* int int *NewtonOnAABBOverlap *NewtonContactsProcess))
+
+   (define *NewtonOnContactGeneration type-callable)
+   (define (NewtonOnContactGeneration f)
+      (make-callback (vm:pin (cons
+         (cons int (list
+         ;  material        body0       collision0       body1       collision1       contactBuffer           maxCount threadIndex
+            NewtonMaterial* NewtonBody* NewtonCollision* NewtonBody* NewtonCollision* NewtonUserContactPoint* int      int))
+         f))))
+
+   (define NewtonMaterialSetContactGenerationCallback (newton void "NewtonMaterialSetContactGenerationCallback" NewtonWorld* int int *NewtonOnContactGeneration))
+
 
    (define *NewtonOnCompoundSubCollisionAABBOverlap type-callable)
    (define (NewtonOnCompoundSubCollisionAABBOverlap f)
@@ -957,6 +972,12 @@
    (define NewtonCollisionGetType (SO int "NewtonCollisionGetType" NewtonCollision*))
    (define NewtonCollisionIsConvexShape (SO int "NewtonCollisionIsConvexShape" NewtonCollision*))
    (define NewtonCollisionIsStaticShape (SO int "NewtonCollisionIsStaticShape" NewtonCollision*))
+
+   (define NewtonCollisionSetUserData (SO void "NewtonCollisionSetUserData" NewtonCollision* int)) ; todo: long long
+   (define NewtonCollisionGetUserData (SO int "NewtonCollisionGetUserData" NewtonCollision*))
+   (define NewtonCollisionSetUserID (SO void "NewtonCollisionSetUserID" NewtonCollision* int))
+   (define NewtonCollisionGetUserID (SO int "NewtonCollisionGetUserID" NewtonCollision*))
+
 
    (define NewtonCollisionIntersectionTest (SO int "NewtonCollisionIntersectionTest" NewtonWorld* NewtonCollision* dFloat* NewtonCollision* dFloat* int))
    (define NewtonCollisionPointDistance (SO int "NewtonCollisionPointDistance" NewtonWorld* dFloat* NewtonCollision* dFloat* dFloat& dFloat& int))
@@ -1020,8 +1041,20 @@
    (define NewtonBodyGetPosition (SO void "NewtonBodyGetPosition" NewtonBody* dFloat&))
    (define NewtonBodyGetMatrix (SO void "NewtonBodyGetMatrix" NewtonBody* dFloat&))
    (define NewtonBodyGetRotation (SO void "NewtonBodyGetRotation" NewtonBody* dFloat&))
+   (define NewtonBodyGetOmega (SO void "NewtonBodyGetOmega" NewtonBody* dFloat&))
    (define NewtonBodyGetVelocity (SO void "NewtonBodyGetVelocity" NewtonBody* dFloat&))
    (define NewtonBodyGetAABB (SO void "NewtonBodyGetAABB" NewtonBody* dFloat& dFloat&))
+
+   (define NewtonContactJointGetFirstContact (SO NewtonContact* "NewtonContactJointGetFirstContact" NewtonJoint*))
+   (define NewtonContactJointGetNextContact (SO NewtonContact* "NewtonContactJointGetNextContact" NewtonJoint* NewtonContact*))
+   (define NewtonContactJointGetContactCount #f)
+   (define NewtonContactJointRemoveContact (SO void "NewtonContactJointRemoveContact" NewtonJoint* NewtonContact*))
+   (define NewtonContactJointGetClosestDistance #f)
+      ;NewtonContactGetMaterial
+   (define NewtonContactGetCollision0 (SO NewtonCollision* "NewtonContactGetCollision0" NewtonContact*))
+   (define NewtonContactGetCollision1 (SO NewtonCollision* "NewtonContactGetCollision1" NewtonContact*))
+   (define NewtonContactGetCollisionID0 (SO int "NewtonContactGetCollisionID0" NewtonContact*))
+   (define NewtonContactGetCollisionID1 (SO int "NewtonContactGetCollisionID1" NewtonContact*))
 
    (define NewtonJointGetBody0 (SO NewtonBody* "NewtonJointGetBody0" NewtonJoint*))
    (define NewtonJointGetBody1 (SO NewtonBody* "NewtonJointGetBody1" NewtonJoint*))
