@@ -149,6 +149,7 @@ SRC_FILES = $(DG_SRCS) $(DG_PHYSICS_SRCS) $(DG_NEWTON_SRCS) $(DG_MESH_SRCS) #$(D
 CPU_FLAGS = -fPIC -msse -msse3 -msse4 -mfpmath=sse -ffloat-store -ffast-math -freciprocal-math -funsafe-math-optimizations -fsingle-precision-constant
 FLAGS += -Wall -Wno-strict-aliasing -D_POSIX_VER $(CPU_FLAGS) -I$(DG_INCLUDED_PATH) -I$(DG_INCLUDED_PHYSICS_PATH) -I$(DG_INCLUDED_NEWTON_PATH) -I$(DG_INCLUDED_MESH_PATH)
 FLAGS += -O2 -g0
+FLAGS += -DDG_DISABLE_ASSERT
 
 #.SUFFIXES : .o .cpp
 #.cpp.o :
