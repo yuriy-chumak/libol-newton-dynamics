@@ -161,6 +161,11 @@ libnewton-dynamics.so: $(SRC_FILES)
 	-lstdc++ -lm -pthread \
 	-shared -o libnewton-dynamics.so
 
+libnewton-dynamics.dll: CC:=x86_64-w64-mingw32-g++-posix
+libnewton-dynamics.dll: $(SRC_FILES)
+	$(CC) $(FLAGS) $(SRC_FILES) \
+	-shared -o libnewton-dynamics.dll
+
 # *********************************************************************************************************
 # newton-dynamics 4.00
 #

@@ -16,20 +16,16 @@
 ; Main project page: http://newtondynamics.com
 ; Forums and public discussion: http://newtondynamics.com/forum
 ;
-; License
-; Newton is licensed under the liberal zlib open source license, with
-; little if any practical difference between them.
-;
 ; Authors
-; Newton Dynamics is a project of Julio Jerez and Alain Suero and various
-; other contributors.
+; Newton Dynamics is a project of Julio Jerez and Alain Suero and various other contributors.
 ; See the AUTHORS page on github for a full list of all contributors.
-
+;
 ; Notes:
 ; Newton serialization/deserialization removed from library.
 
 (define-library (lib newton-dynamics)
    (version 3.14)
+   (license zlib)
    (import
       (otus lisp)
       (otus ffi))
@@ -791,6 +787,7 @@
 
    (define SO (or
       (load-dynamic-library "libnewton-dynamics.so")
+      (load-dynamic-library "libnewton-dynamics.dll")
       (runtime-error "Can't load newton library" #null)))
    (define newton SO) ; legacy name
 
@@ -799,16 +796,16 @@
    (define void fft-void)
    (define void* fft-void*)
 
-   (define dFloat32 fft-float)
-   (define dFloat64 fft-double)
-   (define dLong fft-long-long)
-
    ; 
    (define NewtonWorldGetVersion (SO int "NewtonWorldGetVersion"))
    (define NewtonWorldFloatSize  (SO int "NewtonWorldFloatSize"))
 
-   ; advanced types
    (define _NEWTON_USE_DOUBLE (eq? (NewtonWorldFloatSize) 8))
+   (define dFloat32 fft-float)
+   (define dFloat64 fft-double)
+   (define dLong fft-long-long)
+
+   ; advanced types
 
    (define dFloat (if _NEWTON_USE_DOUBLE fft-double fft-float))
    (define dFloat* (fft* dFloat))
@@ -1069,5 +1066,8 @@
    (define NewtonMeshAddNormal (SO void "NewtonMeshAddNormal" NewtonMesh* dFloat dFloat dFloat))
    (define NewtonMeshEndFace (SO void "NewtonMeshEndFace" NewtonMesh*))
    (define NewtonMeshEndBuild (SO void "NewtonMeshEndBuild" NewtonMesh*))
+
+   (let ((version (NewtonWorldGetVersion)))
+      (print-to stderr "newton-dynamics version " (div version 100) "." (mod version 100)))
 
 ))
