@@ -12,7 +12,8 @@
    [-x -x -x] ;7
    [-x -x  x] ;8
 ])
-(define indices (list
+
+(define faces (list
    [1 2 3 4] ; top (yellow)
    [1 5 6 2] ; right (orange)
    [1 4 8 5] ; front (green)
@@ -28,16 +29,25 @@
    '(0 0 1)
    '(1 1 1)
 ))
+(define normals (list
+   '(0 1 0)
+   '(1 0 0)
+   '(0 0 1)
+   '(-1 0 0)
+   '(0 -1 0)
+   '(0 -1 0)
+))
+
 (define (draw-Cube scale)
    (glPushMatrix)
    (glScalef scale scale scale)
    (glBegin GL_QUADS)
-   (for-each (lambda (index color)
+   (for-each (lambda (face color normal)
          (glColor3fv color)
-         (glVertex3fv (ref vertices (ref index 1)))
-         (glVertex3fv (ref vertices (ref index 2)))
-         (glVertex3fv (ref vertices (ref index 3)))
-         (glVertex3fv (ref vertices (ref index 4))) )
-      indices colors)
+         (glNormal3fv normal)
+         (for-each (lambda (index)
+               (glVertex3fv (ref vertices index)))
+            face))
+      faces colors normals)
    (glEnd)
    (glPopMatrix))

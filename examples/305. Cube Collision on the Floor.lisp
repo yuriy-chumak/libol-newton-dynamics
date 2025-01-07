@@ -4,7 +4,7 @@
    (lib newton-dynamics)
    (lib gl-2) (lib GLU))
 
-(gl:set-window-title "302. Hello World")
+(gl:set-window-title "305. Cube Collision on the Floor")
 
 ; create the "world"
 (define world (or
@@ -17,21 +17,12 @@
 (glClearColor 0.11 0.11 0.11 1)
 (glEnable GL_DEPTH_TEST)
 
-(glMatrixMode GL_PROJECTION)
-(glLoadIdentity)
-(gluPerspective 45 (/ 854 480) 0.1 1000)
-
-(glMatrixMode GL_MODELVIEW)
-(glLoadIdentity)
-(gluLookAt 15 10 20
-   0 0 0
-   0 1 0)
+(define sun [3 10 10 0])
 
 ; utils
 ,load "cube.lisp"
 ,load "cube-shader.lisp"
 
-(define sun [10 10 10 0])
 ; ------------------------------------
 ; newton body creation
 
@@ -73,6 +64,7 @@
 (define collision (NewtonCreateTreeCollision world 0))
 (NewtonTreeCollisionBeginBuild collision)
 
+;; use this for manual faces (these can be either triangles or multiangles)
 ;; (NewtonTreeCollisionAddFace collision 4 '(
 ;;    -19 0.1  19
 ;;     19 0.1  19
@@ -104,6 +96,7 @@
       (KEY_ESC
          (NewtonBodySetVelocity cube [0 0 0]) ; stop moving
          (NewtonBodySetMatrix cube            ; move to start location
+               ; column-major body matrix: location and rotation
                `( 1 0 0 0
                   0 1 0 0
                   0 0 1 0
@@ -121,9 +114,6 @@
    (NewtonUpdate world (min (- now old) 0.05))
    (vm:set! old now)
 
-   ; clear frame
-   (glClear (vm:ior GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT))
-
    ; get body matrix
    (define matrix [
       #i0 #i0 #i0 #i0
@@ -132,9 +122,36 @@
       #i0 #i0 #i0 #i0 ])
    (NewtonBodyGetMatrix cube matrix)
 
-   (glUseProgram 0)
+   ; --- depth support -----
+   (prepare-shadows (lambda ()
+      (glPushMatrix)
+      (glMultMatrixf matrix)
+      (draw-Cube 1)
+      (glPopMatrix)
+   ))
+
+   ;; ---------------------------------
+   ;; scene rendering
+   (glViewport 0 0 (gl:get-window-width) (gl:get-window-height))
+   (glClear (vm:ior GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT))
+   (glEnable GL_CULL_FACE)
+
+   (glMatrixMode GL_PROJECTION)
+   (glLoadIdentity)
+   (gluPerspective 45.0
+      (/ (gl:get-window-width) (gl:get-window-height))
+      0.1 1000)
+
+   (glMatrixMode GL_MODELVIEW)
+   (glLoadIdentity)
+   (gluLookAt 15 10 20
+      0 0 0
+      0 1 0)
 
    ; apply matrix to the opengl cube
+   (glUseProgram lighting-program)
+   (glUniform4fv lightPosition 1 sun)
+
    (glPushMatrix)
    (glMultMatrixf matrix)
    (draw-Cube 1)
@@ -142,8 +159,8 @@
 
    ; draw the "floor" cube
    (glColor3f 0.2 0.2 0.2)
-   (glUseProgram shader-program)
-   (glUniform4fv lightPosition 1 sun)
+   (glUseProgram shading-program)
+   (apply-shadowmap)
 
    (glBegin GL_TRIANGLES)
    (for-each (lambda (object)
@@ -173,6 +190,7 @@
       (glVertex3f 0 0 -1)
       (glVertex3f 0 0 10)
    (glEnd)
+
 ))
 
 (print "Press [ESC] to reset cube position")

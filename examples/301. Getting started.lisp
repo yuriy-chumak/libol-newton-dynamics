@@ -4,7 +4,7 @@
 
 (define world (or
    (NewtonCreate)
-   (runtime-error "Can't create newton world" #f)))
+   (runtime-error "Can't create newton world")))
 
 (define threads (NewtonGetThreadsCount world))
 (print "threads allowed: " threads)
