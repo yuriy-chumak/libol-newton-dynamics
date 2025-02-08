@@ -39,5 +39,5 @@ If you have not installed KISS package manager with ol-pckages repository do the
   * Add ol-packages directory to the global KISS_PATH variable (export KISS_PATH=$USER/.kiss/ol-packages).
 
 Install newton-dynamics package with two steps
-  * `kiss b libol-ann`
-  * `kiss i libol-ann`
+  * `kiss b libol-newton-dynamics`
+  * `kiss i libol-newton-dynamics`

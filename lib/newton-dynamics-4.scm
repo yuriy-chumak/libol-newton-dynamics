@@ -4,37 +4,68 @@
       (otus lisp)
       (otus ffi))
    (export
-      NewtonWorld*
-      ;; NewtonCollision*
-      ;; NewtonBody*
-      ;; NewtonMaterial*
-      ;; NewtonMesh*
-      ;; NewtonJoint*
-      ;; NewtonUserContactPoint*
-      ;; NewtonContact*
-
-      ;; NewtonFracturedCompoundMeshPart*
-
-      ;; NEWTON_DYNAMIC_BODY
-      ;; ; Bodies in the "kinematic" state (instead of the default, "dynamic" state)
-      ;; ;  are "unstoppable" bodies, that behave as if they had infinite mass.
-      ;; ; This means they don't react to any force (gravity, constraints or user-supplied);
-      ;; ;  they simply follow velocity to reach the next position.
-      ;; ; Their purpose is to animate objects that don't react to other bodies,
-      ;; ;  but act upon them through joints (any joint, not just contact joints).
-      ;; NEWTON_KINEMATIC_BODY
-      ;; NEWTON_DYNAMIC_ASYMETRIC_BODY
+      ;; Bodies in the "kinematic" state (instead of the default, "dynamic" state)
+      ;;  are "unstoppable" bodies, that behave as if they had infinite mass.
+      ;; This means they don't react to any force (gravity, constraints or user-supplied);
+      ;;  they simply follow velocity to reach the next position.
+      ;; Their purpose is to animate objects that don't react to other bodies,
+      ;;  but act upon them through joints (any joint, not just contact joints).
 
       ;; NewtonWorldFloatSize
 
-      NewtonWorldCreate
-      NewtonWorldDestroy
-      NewtonWorldGetEngineVersion
-      NewtonWorldUpdate
+      Newton:CreateWorld
+      Newton:DestroyWorld
+      NewtonWorld:GetEngineVersion
+      NewtonWorld:Sync
+      NewtonWorld:Update
+
+      NewtonWorld:SetSubSteps
+
+      ;; ...
+      NewtonWorld:SetSolverIterations
+
+      NewtonWorld:AddBody
+
+      ;; ----------------------------------------------
+      ;; convex collision primitives creation functions
+      ;; ----------------------------------------------
+
+      ; Null
+      Newton:CreateBox
+      ; Cone
+      ; Point
+      ; Convex
+      Newton:CreateSphere
+      ; Capsule
+      ; Cylinder
+      ; Compound
+      ; StaticBVH
+      ; StaticMesh
+      ; Heightfield
+      ; ConvexPolygon
+      ; ChamferCylinder
+      ; StaticProceduralMesh
+
+
+      Newton:CreateDynamicBody
+      Newton:CreateKinematicBody
+
+      NewtonBody:SetCollisionShape
+      NewtonBody:SetMatrix
+      NewtonBody:GetMatrix
+      NewtonBody:SetMass
+      NewtonBody:SetMassMatrix
+      NewtonBody:SetMassShape
+
+      NewtonBody:SetForce
+      NewtonBody:SetVelocity
+
+      ApplyExternalForceCallback
+      NewtonBody:SetApplyExternalForceCallback
 
 )
-(begin
 
+(begin
    (define SO (or
       (load-dynamic-library "libnewton-dynamics-4.so")
       (runtime-error "Can't load newton library" #n)))
@@ -45,6 +76,10 @@
    ;; (define void* fft-void*)
 
    (define ndFloat32 fft-float)
+   (define ndFloat32* (fft* ndFloat32))
+
+   (define ndMatrix* (fft* ndFloat32))
+   (define ndMatrix& (fft& ndFloat32))
    ;; (define dFloat64 fft-double)
    ;; (define dLong fft-long-long)
 
@@ -66,8 +101,8 @@
 
    ; newton types
    (define NewtonWorld* type-vptr)
-   ;; (define NewtonCollision* type-vptr)
-   ;; (define NewtonBody* type-vptr)
+   (define NewtonShape* type-vptr)
+   (define NewtonBody* type-vptr)
    ;; (define NewtonMaterial* type-vptr)
    ;; (define NewtonMesh* type-vptr)
    ;; (define NewtonJoint* type-vptr)
@@ -76,15 +111,48 @@
 
    ;; (define NewtonFracturedCompoundMeshPart* type-vptr)
 
-   ;; ; -----------------------
-   ;; ; world control functions
-   ;; ; -----------------------
+   ; -----------------------
+   ; NewtonWorld
 
    ;; (define NewtonGetMemoryUsed (SO int "NewtonGetMemoryUsed"))
 
-   (define NewtonWorldCreate (SO NewtonWorld* "NewtonWorldCreate"))
-   (define NewtonWorldDestroy (SO void "NewtonWorldDestroy" NewtonWorld*))
-   (define NewtonWorldGetEngineVersion (SO ndInt32 "NewtonWorldGetEngineVersion" NewtonWorld*))
-   (define NewtonWorldUpdate (SO void "NewtonWorldUpdate" NewtonWorld* ndFloat32))
+   (define Newton:CreateWorld (SO NewtonWorld* "NewtonCreateWorld"))
+   (define Newton:DestroyWorld (SO void "NewtonDestroyWorld" NewtonWorld*))
+   (define NewtonWorld:GetEngineVersion (SO ndInt32 "NewtonWorldGetEngineVersion" NewtonWorld*))
+   (define NewtonWorld:Sync (SO void "NewtonWorldSync" NewtonWorld*))
+   (define NewtonWorld:Update (SO void "NewtonWorldUpdate" NewtonWorld* ndFloat32))
 
+   (define NewtonWorld:SetSubSteps (SO void "NewtonWorldSetSubSteps" NewtonWorld* ndInt32))
+   (define NewtonWorld:SetSolverIterations (SO void "NewtonWorldSetSolverIterations" NewtonWorld* ndInt32))
+
+   (define NewtonWorld:AddBody (SO void "NewtonWorldAddBody" NewtonWorld* NewtonBody*))
+
+   ; ----------------------
+   ; collisions (shapes)
+   (define Newton:CreateBox (SO NewtonShape* "NewtonCreateBox" ndFloat32 ndFloat32 ndFloat32))
+   (define Newton:CreateSphere (SO NewtonShape* "NewtonCreateSphere" ndFloat32))
+
+   ; ----------------------
+   (define Newton:CreateDynamicBody (SO NewtonBody* "NewtonCreateDynamicBody" NewtonShape* ndFloat32))
+   (define Newton:CreateKinematicBody (SO NewtonBody* "NewtonCreateKinematicBody" NewtonShape*))
+
+   (define NewtonBody:SetCollisionShape (SO void "NewtonBodySetCollisionShape" NewtonBody* NewtonShape*))
+   (define NewtonBody:SetMatrix (SO void "NewtonBodySetMatrix" NewtonBody* ndMatrix*))
+   (define NewtonBody:GetMatrix (SO void "NewtonBodyGetMatrix" NewtonBody* ndMatrix&))
+   (define NewtonBody:SetMass (SO void "NewtonBodySetMass" NewtonBody* ndFloat32))
+   (define NewtonBody:SetMassMatrix (SO void "NewtonBodySetMassMatrix" NewtonBody* ndFloat32 ndMatrix*))
+   (define NewtonBody:SetMassShape (SO void "NewtonBodySetMassShape" NewtonBody* ndFloat32 NewtonShape* fft-bool))
+
+   (define NewtonBody:SetForce (SO void "NewtonBodySetForce" NewtonBody* ndFloat32*))
+   (define NewtonBody:SetVelocity (SO void "NewtonBodySetVelocity" NewtonBody* ndFloat32*))
+
+   (define *ApplyExternalForceCallback type-callable)
+   (define (ApplyExternalForceCallback f)
+      (make-callback (vm:pin (cons
+         (cons void (list
+         ;  body        timestep  threadIndex
+            NewtonBody* ndFloat32 ndInt32))
+         f))))
+
+   (define NewtonBody:SetApplyExternalForceCallback (SO void "NewtonBodySetApplyExternalForceCallback" NewtonBody* *ApplyExternalForceCallback))
 ))

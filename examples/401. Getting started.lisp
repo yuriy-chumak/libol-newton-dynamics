@@ -1,14 +1,12 @@
+#!/usr/bin/env ol
+
 (import (lib newton-dynamics-4))
 
 (define world (or
-   (NewtonWorldCreate)
-   (runtime-error "Can't create newton world" #f)))
+   (Newton:CreateWorld)
+   (runtime-error "Can't create newtonian world.")))
 
-(let ((ver (NewtonWorldGetEngineVersion world)))
-   (display "newton-dynamics version ")
-   (display (div ver 100))
-   (display ".")
-   (display (mod ver 100)))
-(newline)
+(let ((version (NewtonWorld:GetEngineVersion world)))
+   (print-to stderr "newton-dynamics version " (div version 100) "." (mod version 100)))
 
-(NewtonWorldDestroy world)
+(Newton:DestroyWorld world)
