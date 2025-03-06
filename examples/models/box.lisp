@@ -38,9 +38,9 @@
    '(0 -1 0)
 ))
 
-(define (draw-Cube scale)
+(define (draw-Box size1 size2 size3)
    (glPushMatrix)
-   (glScalef scale scale scale)
+   (glScalef size1 size2 size3)
    (glBegin GL_QUADS)
    (for-each (lambda (face color normal)
          (glColor3fv color)

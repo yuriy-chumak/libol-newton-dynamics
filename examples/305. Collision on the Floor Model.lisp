@@ -19,16 +19,62 @@
 
 (define sun [3 10 10 0])
 
-; utils
-,load "cube.lisp"
+; primitive types and drawing
 ,load "cube-shader.lisp"
+,load "models/box.lisp"
+,load "models/sphere.lisp"
+,load "models/cone.lisp"
+,load "models/capsule.lisp"
+,load "models/cylinder.lisp"
+,load "models/convex.lisp"
+
+(define primitive (cond
+   ((zero? (length *command-line*))     'cube)
+   ((= (car *command-line*) "cube")     'cube)
+   ((= (car *command-line*) "brick")    'brick)
+   ((= (car *command-line*) "sphere")   'sphere)
+   ((= (car *command-line*) "cone")     'cone)
+   ((= (car *command-line*) "capsule")  'capsule)
+   ((= (car *command-line*) "cylinder") 'cylinder) ; todo: add chamfer cylinder
+   ((= (car *command-line*) "convex")   'convex)
+   (else
+      (runtime-error (string-append "Unknown primitive type " (car *command-line*))
+         (list "Only cube, brick, sphere, cone, capsule, cylinder, convex are allowed.")))))
 
 ; ------------------------------------
 ; newton body creation
 
 ; 1. create collision model (the cube)
-;    "1 1 1" is box sizes
-(define collision (NewtonCreateBox world  1 1 1  0  #f))
+(define collision (case primitive
+   ;                                    box sizes
+   ('cube  (NewtonCreateBox world       1 1 1      0 #f))
+   ('brick (NewtonCreateBox world       0.5 1 2    0 #f))
+   ;                                    radius
+   ('sphere (NewtonCreateSphere world   0.5        0 #f))
+   ;
+   ('cone (NewtonCreateCone world       0.5 1      0 #f))
+   ;
+   ('capsule (NewtonCreateCapsule world 0.2 0.5 1  0 #f))
+   ;
+   ('cylinder (NewtonCreateCapsule world 0.2 0.5 1 0 #f))
+   ;
+   ('convex (let ((vertices (monkey 'v)))
+      (NewtonCreateConvexHull world (length vertices)
+         (foldr (lambda (l r) (append (vector->list l) r)) #n vertices)
+         (* 3 4)
+         0.0 0 #f)))
+))
+
+(define draw-Primitive
+   (case primitive
+      ('cube     (lambda() (draw-Box 1 1 1)))
+      ('brick    (lambda() (draw-Box 0.5 1 2)))
+      ('sphere   (lambda() (draw-Sphere 0.5)))
+      ('cone     (lambda() (draw-Cone 0.5 1)))
+      ('capsule  (lambda() (draw-Capsule 0.2 0.5 1)))
+      ('cylinder (lambda() (draw-Cylinder 0.2 0.5 1)))
+      ('convex   (lambda() (draw-Convex)))
+))
 
 ; 2. create a dynamic body (body than can move)
 (define cube (NewtonCreateDynamicBody world collision
@@ -58,7 +104,7 @@
 ; reed floor model from the OBJ file
 (import (owl parse))
 (import (file wavefront obj))
-(define floor-obj-model (parse wavefront-obj-parser (file->list "floor.obj") #empty))
+(define floor-obj-model (parse wavefront-obj-parser (file->list "models/floor.obj") #empty))
 
 ; 1. build static collision
 (define collision (NewtonCreateTreeCollision world 0))
@@ -74,6 +120,7 @@
 (define vertices (list->vector (floor-obj-model 'v)))
 (define normals (list->vector (floor-obj-model 'vn)))
 
+; get triangles from the OBJ model file
 (for-each (lambda (object)
       (for-each (lambda (facegroup)
             (for-each (lambda (face)
@@ -126,7 +173,7 @@
    (prepare-shadows (lambda ()
       (glPushMatrix)
       (glMultMatrixf matrix)
-      (draw-Cube 1)
+      (draw-Primitive)
       (glPopMatrix)
    ))
 
@@ -154,13 +201,18 @@
 
    (glPushMatrix)
    (glMultMatrixf matrix)
-   (draw-Cube 1)
+   (draw-Primitive)
    (glPopMatrix)
 
    ; draw the "floor" cube
    (glColor3f 0.2 0.2 0.2)
    (glUseProgram shading-program)
    (apply-shadowmap)
+   (glUniformMatrix4fv modelMatrix 1 #false [
+      1  0  0  0
+      0  1  0  0
+      0  0  1  0
+      0  0  0  1 ])
 
    (glBegin GL_TRIANGLES)
    (for-each (lambda (object)

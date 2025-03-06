@@ -18,7 +18,7 @@
 (glEnable GL_DEPTH_TEST)
 
 ; utils
-,load "cube.lisp"
+,load "models/cube.lisp"
 
 ; ------------------------------------
 ; newton body creation

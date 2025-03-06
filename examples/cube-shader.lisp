@@ -65,15 +65,17 @@ varying vec3 vertexNormal;
 uniform mat4 shadowMatrix;
 varying vec4 fragPosLightSpace;
 
+uniform mat4 modelMatrix;
+
 void main()
 {
    vec4 vertex = gl_Vertex;
    vec3 normal = gl_Normal;
 
-   vertexPosition = gl_ModelViewMatrix * vertex;
-   vertexNormal = mat3(gl_ModelViewMatrix) * normal;
+   vertexPosition = gl_ModelViewMatrix * modelMatrix * vertex;
+   vertexNormal = mat3(gl_ModelViewMatrix * modelMatrix) * normal;
 
-   fragPosLightSpace = shadowMatrix * vertex;
+   fragPosLightSpace = shadowMatrix * modelMatrix * vertex;
 
    gl_Position = gl_ProjectionMatrix * vertexPosition;
    gl_FrontColor = gl_Color;
@@ -88,6 +90,8 @@ uniform vec4 lightPosition;
 
 uniform sampler2D tex0;
 varying vec4 fragPosLightSpace;
+
+uniform float bias;
 
 void main()
 {
@@ -114,19 +118,22 @@ void main()
    float currentDepth = projCoords.z;
 
    // check whether current frag pos is in shadow
-   float bias = 0.0005;
-   //float bias = max(0.05 * (1.0 - dot(normal, lightDirection)), 0.005);
-   float shadow = (currentDepth - bias) > closestDepth ? 0.2 : 1.0;
-   float less = currentDepth > closestDepth ? 0.2 : 1.0;
+   //float bias = 0.005;
+   float biasEx = max(0.05 * (1.0 - dot(normal, lightDirection)), bias);
+   float shadow = (currentDepth - biasEx) > closestDepth ? 0.2 : 1.0;
 
    gl_FragColor = vec4(diffuseTex.rgb * min(shadow, diffuseIntensity), 1.0);
+   // gl_FragColor = vec4(diffuseTex.rgb * diffuseIntensity, 1.0);
 }"))
+
+(setq shadowBias (glGetUniformLocation shading-program "bias"))
+(setq modelMatrix (glGetUniformLocation shading-program "modelMatrix"))
 
 ; prepare depthmap
 (import (OpenGL EXT framebuffer_object))
 
-(define TEXW 512)
-(define TEXH 512)
+(define TEXW 1024)
+(define TEXH 1024)
 ; depth 2d map framebuffer
 (define depthmap2d (box 0))
 (glGenTextures (length depthmap2d) depthmap2d)
@@ -187,7 +194,9 @@ void main()
 
    (glUniform4fv lightPosition 1 sun)
    (glUniformMatrix4fv shadowMatrix 1 #f shadowmatrix)
+   (glUniform1fv shadowBias 1 '(0.0005))
 
+   (glEnable GL_TEXTURE_2D)
    (glActiveTexture GL_TEXTURE0)
    (glBindTexture GL_TEXTURE_2D (car depthmap2d))
    (glUniform1i tex0 0))
