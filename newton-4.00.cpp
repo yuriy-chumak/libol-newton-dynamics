@@ -125,18 +125,59 @@ void NewtonWorldAddBody(NewtonWorld* world, ndBody* body)
 // collision primitives creation functions
 // ---------------------------------------
 
+// ----------------------------
+#include "ndShapeBox.h"
+
 D_LIBRARY_EXPORT
 ndShapeBox* NewtonCreateBox (ndFloat32 size_x, ndFloat32 size_y, ndFloat32 size_z)
 {
     return new ndShapeBox(size_x, size_y, size_z);
 }
 
+// ----------------------------
+#include "ndShapeCone.h"
+
+D_LIBRARY_EXPORT
+ndShapeCone* NewtonCreateCone (ndFloat32 radio, ndFloat32 height)
+{
+    return new ndShapeCone(radio, height);
+}
 // TODO: Null
+
+// ----------------------------
+#include "ndShapeSphere.h"
 
 D_LIBRARY_EXPORT
 ndShapeSphere* NewtonCreateSphere (ndFloat32 radius)
 {
     return new ndShapeSphere(radius);
+}
+
+// ----------------------------
+#include "ndShapeCapsule.h"
+
+D_LIBRARY_EXPORT
+ndShapeCapsule* NewtonCreateCapsule (ndFloat32 radius0, ndFloat32 radius1, ndFloat32 height)
+{
+    return new ndShapeCapsule(radius0, radius1, height);
+}
+
+// ----------------------------
+#include "ndShapeCylinder.h"
+
+D_LIBRARY_EXPORT
+ndShapeCylinder* NewtonCreateCylinder (ndFloat32 radius0, ndFloat32 radius1, ndFloat32 height)
+{
+    return new ndShapeCylinder(radius0, radius1, height);
+}
+
+// ----------------------------
+#include "ndShapeConvexHull.h"
+
+D_LIBRARY_EXPORT
+ndShapeConvexHull* NewtonCreateConvexHull (ndInt32 count, ndInt32 strideInBytes, ndFloat32 tolerance, const ndFloat32* const vertexArray)
+{
+    return new ndShapeConvexHull(count, strideInBytes, tolerance, vertexArray);
 }
 
 // --------

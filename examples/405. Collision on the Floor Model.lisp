@@ -22,10 +22,21 @@
 ; primitive types and drawing
 ,load "cube-shader.lisp"
 ,load "models/box.lisp"
+,load "models/sphere.lisp"
+,load "models/cone.lisp"
+,load "models/capsule.lisp"
+,load "models/cylinder.lisp"
+,load "models/convex.lisp"
 
 (define primitive (cond
    ((zero? (length *command-line*))     'cube)
    ((= (car *command-line*) "cube")     'cube)
+   ((= (car *command-line*) "brick")    'brick)
+   ((= (car *command-line*) "sphere")   'sphere)
+   ((= (car *command-line*) "cone")     'cone)
+   ((= (car *command-line*) "capsule")  'capsule)
+   ((= (car *command-line*) "cylinder") 'cylinder) ; todo: add chamfer cylinder
+   ((= (car *command-line*) "convex")   'convex)
    (else
       (runtime-error (string-append "Unknown primitive type " (car *command-line*))
          (list "Only cube, brick, sphere, cone, capsule, cylinder, convex, and compound are allowed.")))))
@@ -35,14 +46,33 @@
 
 ; 1. create shape model
 (define shape (case primitive
-   ;                                box sizes
-   ('cube  (Newton:CreateBox        1 1 1))
+   ;                                 box sizes
+   ('cube  (Newton:CreateBox         1.0 1.0 1.0))
+   ('brick (Newton:CreateBox         0.5 1.0 2.0))
+   ;                                 radius
+   ('sphere (Newton:CreateSphere     0.5))
+   ;                                 radius height
+   ('cone (Newton:CreateCone         0.5    1.0))
+   ;
+   ('capsule (Newton:CreateCapsule   0.3 0.5 1))
+   ;
+   ('cylinder (Newton:CreateCylinder 0.3 0.5 1))
+   ;
+   ('convex (let ((vertices (monkey 'v)))
+      (Newton:CreateConvexHull (length vertices) (* 3 4) 0
+         (foldr (lambda (l r) (append (vector->list l) r)) #n vertices))))
 
 ))
 
 (define draw-Primitive
    (case primitive
-      ('cube     (lambda () (draw-Box 1 1 1)))
+      ('cube     (lambda () (draw-Box 1.0 1.0 1.0)))
+      ('brick    (lambda () (draw-Box 0.5 1.0 2.0)))
+      ('sphere   (lambda () (draw-Sphere 0.5)))
+      ('cone     (lambda () (draw-Cone 0.5 1)))
+      ('capsule  (lambda () (draw-Capsule 0.3 0.5 1)))
+      ('cylinder (lambda () (draw-Cylinder 0.3 0.5 1)))
+      ('convex   (lambda () (draw-Convex)))
 ))
 
 ; 2. create a dynamic body (body than can move) TODO: rename "cube" to "object" or smth

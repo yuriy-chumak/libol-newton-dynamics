@@ -32,13 +32,13 @@
 
       ; Null
       Newton:CreateBox
-      ; Cone
+      Newton:CreateCone
       ; Point
-      ; Convex
       Newton:CreateSphere
       Newton:CreateStatic ; Static_bvh
-      ; Capsule
-      ; Cylinder
+      Newton:CreateCapsule
+      Newton:CreateCylinder
+      Newton:CreateConvexHull
       ; Compound
       ; StaticBVH
       ; StaticMesh
@@ -146,9 +146,22 @@
 
    ; ----------------------
    ; collisions (shapes)
+   ; Null
    (define Newton:CreateBox (SO NewtonShape* "NewtonCreateBox" ndFloat32 ndFloat32 ndFloat32))
+   (define Newton:CreateCone (SO NewtonShape* "NewtonCreateCone" ndFloat32 ndFloat32))
+   ; Point
    (define Newton:CreateSphere (SO NewtonShape* "NewtonCreateSphere" ndFloat32))
+   (define Newton:CreateCapsule (SO NewtonShape* "NewtonCreateCapsule" ndFloat32 ndFloat32 ndFloat32))
+   (define Newton:CreateCylinder (SO NewtonShape* "NewtonCreateCylinder" ndFloat32 ndFloat32 ndFloat32))
+   ; ChamferCylinder
+   ; Compound
+   (define Newton:CreateConvexHull (SO NewtonShape* "NewtonCreateConvexHull" ndInt32 ndInt32 ndFloat32 ndFloat32*))
+   ; ConvexPolygon
    (define Newton:CreateStatic (SO NewtonShape* "NewtonCreateStatic" PolygonSoupBuilder*))
+   ; StaticMesh
+   ; Heightfield
+   ; UserDefinedImplicit
+   ; StaticProceduralMesh
 
    ; ----------------------
    (define Newton:CreateDynamicBody (SO NewtonBody* "NewtonCreateDynamicBody" NewtonShape* ndFloat32))
