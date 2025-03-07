@@ -57,7 +57,7 @@
 (gl:set-keyboard-handler (lambda (key)
    (case key
       (KEY_ESC
-         (NewtonBody:SetVelocity cube [0 0 0 0]) ; stop moving
+         (NewtonBody:SetVelocity cube [0 0 0 0]) ; stop moving, 4 floats
          (NewtonBody:SetMatrix cube              ; move to start location
                ; column-major body matrix: location and rotation
                `( 1 0 0 0

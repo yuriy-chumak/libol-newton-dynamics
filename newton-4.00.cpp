@@ -1,6 +1,17 @@
 #include "ndTypes.h"
 #include "ndWorld.h"
 #include "ndBodyDynamic.h"
+#include "ndPolygonSoupBuilder.h"
+#include "ndShapeStatic_bvh.h"
+
+// naming rules:
+//  NewtonCreate === new
+//  NewtonDestroy === delete
+//  TypenameMethodname === Typename->Methodname
+
+// notes:
+//  we'r skipping "Shape" in constructors (to be more 3.14-like)
+
 
 #ifdef _NEWTON_BUILD_DLL
 	#if (defined (__MINGW32__) || defined (__MINGW64__))
@@ -110,9 +121,9 @@ void NewtonWorldAddBody(NewtonWorld* world, ndBody* body)
 
 
 
-// ----------------------------------------------
-// convex collision primitives creation functions
-// ----------------------------------------------
+// ---------------------------------------
+// collision primitives creation functions
+// ---------------------------------------
 
 D_LIBRARY_EXPORT
 ndShapeBox* NewtonCreateBox (ndFloat32 size_x, ndFloat32 size_y, ndFloat32 size_z)
@@ -120,7 +131,7 @@ ndShapeBox* NewtonCreateBox (ndFloat32 size_x, ndFloat32 size_y, ndFloat32 size_
     return new ndShapeBox(size_x, size_y, size_z);
 }
 
-// Null
+// TODO: Null
 
 D_LIBRARY_EXPORT
 ndShapeSphere* NewtonCreateSphere (ndFloat32 radius)
@@ -128,7 +139,50 @@ ndShapeSphere* NewtonCreateSphere (ndFloat32 radius)
     return new ndShapeSphere(radius);
 }
 
-// ...
+// --------
+// PolygonSoupBuilder
+
+D_LIBRARY_EXPORT
+ndPolygonSoupBuilder* NewtonCreatePolygonSoupBuilder()
+{
+    return new ndPolygonSoupBuilder();
+}
+D_LIBRARY_EXPORT
+ndPolygonSoupBuilder* NewtonCreatePolygonSoupBuilder1(const ndPolygonSoupBuilder& other)
+{
+    return new ndPolygonSoupBuilder(other);
+}
+D_LIBRARY_EXPORT
+void NewtonDestroyPolygonSoupBuilder(ndPolygonSoupBuilder* self)
+{
+    delete self;
+}
+
+D_LIBRARY_EXPORT
+void PolygonSoupBuilderBegin(ndPolygonSoupBuilder* self)
+{
+    (void)self->Begin();
+}
+
+D_LIBRARY_EXPORT
+void PolygonSoupBuilderAddFace(ndPolygonSoupBuilder* self, const ndFloat32* const vertex, ndInt32 strideInBytes, ndInt32 vertexCount, const ndInt32 faceId)
+{
+    (void)self->AddFace(vertex, strideInBytes, vertexCount, faceId);
+}
+
+D_LIBRARY_EXPORT
+void PolygonSoupBuilderEnd(ndPolygonSoupBuilder* self, bool optimize)
+{
+    (void)self->End(optimize);
+}
+
+// --------
+// ndShapeStatic_bvh
+D_LIBRARY_EXPORT
+ndShapeStatic_bvh* NewtonCreateStatic (ndPolygonSoupBuilder& builder)
+{
+    return new ndShapeStatic_bvh(builder);
+}
 
 // ----------------------------------------------
 // D_LIBRARY_EXPORT
@@ -172,7 +226,7 @@ void NewtonBodyGetMatrix(NewtonBody *body, ndFloat32 matrix[16]) {
 }
 
 D_LIBRARY_EXPORT
-void NewtonBodySetMatrix(NewtonBody *body, const ndMatrix& matrix) {
+void NewtonBodySetMatrix(NewtonBody *body, ndFloat32 matrix[16]) {
     body->SetMatrix(matrix);
 }
 
@@ -183,7 +237,7 @@ void NewtonBodySetMass(NewtonBody *body, ndFloat32 mass) {
 
 
 D_LIBRARY_EXPORT
-void NewtonBodySetMassMatrix(NewtonBody *body, ndFloat32 mass, const ndMatrix& inertia) {
+void NewtonBodySetMassMatrix(NewtonBody *body, ndFloat32 mass, ndFloat32 inertia[16]) {
     body->SetMassMatrix(mass, inertia);
 }
 
@@ -193,12 +247,12 @@ void NewtonBodySetMassShape(NewtonBody *body, ndFloat32 mass, ndShape* shape, bo
 }
 
 D_LIBRARY_EXPORT
-void NewtonBodySetForce(NewtonBody *body, ndFloat32* force) {
+void NewtonBodySetForce(NewtonBody *body, ndFloat32 force[4]) {
     body->SetForce(force);
 }
 
 D_LIBRARY_EXPORT
-void NewtonBodySetVelocity(NewtonBody *body, ndFloat32* velocity) {
+void NewtonBodySetVelocity(NewtonBody *body, ndFloat32 velocity[4]) {
     body->SetVelocity(velocity);
 }
 

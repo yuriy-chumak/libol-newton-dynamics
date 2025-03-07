@@ -170,10 +170,11 @@ libnewton-dynamics.dll: $(SRC_FILES)
 # newton-dynamics 4.00
 #
 # notes: no dFileFormat/, 
+#	$(wildcard newton-dynamics/newton-4.00/sdk/dBrain/*.cpp)
 SRC4_FILES += \
-	$(wildcard newton-dynamics/newton-4.00/sdk/dBrain/*.cpp) \
 	$(wildcard newton-dynamics/newton-4.00/sdk/dCollision/*.cpp) \
 	$(wildcard newton-dynamics/newton-4.00/sdk/dCore/*.cpp) \
+	$(wildcard newton-dynamics/newton-4.00/sdk/dCore/tinyxml/*.cpp) \
 	$(wildcard newton-dynamics/newton-4.00/sdk/dNewton/*.cpp) \
 	$(wildcard newton-dynamics/newton-4.00/sdk/dNewton/dIkSolver/*.cpp) \
 	$(wildcard newton-dynamics/newton-4.00/sdk/dNewton/dJoints/*.cpp) \

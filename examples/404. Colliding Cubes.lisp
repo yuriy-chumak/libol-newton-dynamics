@@ -38,6 +38,13 @@
    )))
 (NewtonBody:SetApplyExternalForceCallback cube ApplyGravityCallback)
 
+
+;; ; 5. delete collision, we don't need it anymore
+;; (NewtonDestroyCollision collision)
+
+; 6. add our body to the world
+(NewtonWorld:AddBody world cube)
+
 ; 4. set body location and rotation
 (NewtonBody:SetMatrix cube [
    1 0 0 0
@@ -46,25 +53,20 @@
    0 9 0 1 ; x y z w
 ])
 
-;; ; 5. delete collision, we don't need it anymore
-;; (NewtonDestroyCollision collision)
-
-; 6. add our body to the world
-(NewtonWorld:AddBody world cube)
-
 ; -- floor --------------------
 (define shape (Newton:CreateBox 2 2 2))
 (define floor (Newton:CreateKinematicBody shape))
+(define-values (x y z)
+   (values 1.1 0 -1.1))
 (NewtonBody:SetMatrix floor [
       ; column-major body matrix: "all-in-one" location and rotation
       1 0 0 0
       0 1 0 0
       0 0 1 0
-      1.1 0 -1.1 1; x y z w
+      x y z 1; x y z w
    ])
 (NewtonWorld:AddBody world floor)
 ;; (NewtonDestroyCollision collision)
-
 
 ; keyboard handler
 (import (lib keyboard))

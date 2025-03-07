@@ -36,6 +36,7 @@
       ; Point
       ; Convex
       Newton:CreateSphere
+      Newton:CreateStatic ; Static_bvh
       ; Capsule
       ; Cylinder
       ; Compound
@@ -45,6 +46,12 @@
       ; ConvexPolygon
       ; ChamferCylinder
       ; StaticProceduralMesh
+
+      Newton:CreatePolygonSoupBuilder
+      Newton:DestroyPolygonSoupBuilder
+      PolygonSoupBuilder:Begin
+      PolygonSoupBuilder:AddFace
+      PolygonSoupBuilder:End
 
 
       Newton:CreateDynamicBody
@@ -71,8 +78,9 @@
       (runtime-error "Can't load newton library" #n)))
 
    ; basic types
-   (define ndInt32 fft-int32)
    (define void fft-void)
+   (define ndInt32 fft-int32)
+   (define bool fft-bool)
    ;; (define void* fft-void*)
 
    (define ndFloat32 fft-float)
@@ -103,6 +111,7 @@
    (define NewtonWorld* type-vptr)
    (define NewtonShape* type-vptr)
    (define NewtonBody* type-vptr)
+   (define PolygonSoupBuilder* type-vptr)
    ;; (define NewtonMaterial* type-vptr)
    ;; (define NewtonMesh* type-vptr)
    ;; (define NewtonJoint* type-vptr)
@@ -127,10 +136,19 @@
 
    (define NewtonWorld:AddBody (SO void "NewtonWorldAddBody" NewtonWorld* NewtonBody*))
 
+   ; ---------
+   ; mesh builder
+   (define Newton:CreatePolygonSoupBuilder (SO PolygonSoupBuilder* "NewtonCreatePolygonSoupBuilder"))
+   (define Newton:DestroyPolygonSoupBuilder (SO void "NewtonDestroyPolygonSoupBuilder" PolygonSoupBuilder*))
+   (define PolygonSoupBuilder:Begin (SO void "PolygonSoupBuilderBegin" PolygonSoupBuilder*))
+   (define PolygonSoupBuilder:AddFace (SO void "PolygonSoupBuilderAddFace" PolygonSoupBuilder* ndFloat32* ndInt32 ndInt32 ndInt32))
+   (define PolygonSoupBuilder:End (SO void "PolygonSoupBuilderEnd" PolygonSoupBuilder* bool))
+
    ; ----------------------
    ; collisions (shapes)
    (define Newton:CreateBox (SO NewtonShape* "NewtonCreateBox" ndFloat32 ndFloat32 ndFloat32))
    (define Newton:CreateSphere (SO NewtonShape* "NewtonCreateSphere" ndFloat32))
+   (define Newton:CreateStatic (SO NewtonShape* "NewtonCreateStatic" PolygonSoupBuilder*))
 
    ; ----------------------
    (define Newton:CreateDynamicBody (SO NewtonBody* "NewtonCreateDynamicBody" NewtonShape* ndFloat32))
