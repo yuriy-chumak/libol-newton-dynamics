@@ -27,6 +27,7 @@
 ,load "models/capsule.lisp"
 ,load "models/cylinder.lisp"
 ,load "models/convex.lisp"
+,load "models/compound.lisp"
 
 (define primitive (cond
    ((zero? (length *command-line*))     'cube)
@@ -37,9 +38,10 @@
    ((= (car *command-line*) "capsule")  'capsule)
    ((= (car *command-line*) "cylinder") 'cylinder) ; todo: add chamfer cylinder
    ((= (car *command-line*) "convex")   'convex)
+   ((= (car *command-line*) "compound") 'compound)
    (else
       (runtime-error (string-append "Unknown primitive type " (car *command-line*))
-         (list "Only cube, brick, sphere, cone, capsule, cylinder, convex are allowed.")))))
+         (list "Only cube, brick, sphere, cone, capsule, cylinder, convex, and compound are allowed.")))))
 
 ; ------------------------------------
 ; newton body creation
@@ -63,17 +65,42 @@
          (foldr (lambda (l r) (append (vector->list l) r)) #n vertices)
          (* 3 4)
          0.0 0 #f)))
+   ('compound (begin
+      (define O (NewtonCreateSphere world   0.5        0 #f))
+      (define H1 (NewtonCreateSphere world   0.3       0 [
+         1 0 0 0
+         0 1 0 0
+         0 0 1 0
+         (* 0.60 (sin +0.5235)) (* 0.60 (cos +0.5235)) 0 1
+      ]))
+      (define H2 (NewtonCreateSphere world   0.3       0 [
+         1 0 0 0
+         0 1 0 0
+         0 0 1 0
+         (* 0.60 (sin -0.5235)) (* 0.60 (cos -0.5235)) 0 1
+      ]))
+
+      (define collision (NewtonCreateCompoundCollision world 0))
+      (NewtonCompoundCollisionBeginAddRemove collision)
+      (NewtonCompoundCollisionAddSubCollision collision O)
+      (NewtonCompoundCollisionAddSubCollision collision H1)
+      (NewtonCompoundCollisionAddSubCollision collision H2)
+      (NewtonCompoundCollisionEndAddRemove collision)
+
+      collision))
+
 ))
 
 (define draw-Primitive
    (case primitive
-      ('cube     (lambda() (draw-Box 1 1 1)))
-      ('brick    (lambda() (draw-Box 0.5 1 2)))
-      ('sphere   (lambda() (draw-Sphere 0.5)))
-      ('cone     (lambda() (draw-Cone 0.5 1)))
-      ('capsule  (lambda() (draw-Capsule 0.2 0.5 1)))
-      ('cylinder (lambda() (draw-Cylinder 0.2 0.5 1)))
-      ('convex   (lambda() (draw-Convex)))
+      ('cube     (lambda () (draw-Box 1 1 1)))
+      ('brick    (lambda () (draw-Box 0.5 1 2)))
+      ('sphere   (lambda () (draw-Sphere 0.5)))
+      ('cone     (lambda () (draw-Cone 0.5 1)))
+      ('capsule  (lambda () (draw-Capsule 0.2 0.5 1)))
+      ('cylinder (lambda () (draw-Cylinder 0.2 0.5 1)))
+      ('convex   (lambda () (draw-Convex)))
+      ('compound (lambda () (draw-Compound)))
 ))
 
 ; 2. create a dynamic body (body than can move)
