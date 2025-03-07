@@ -24,7 +24,8 @@
       (iota (+ DIVISIONS 1) 0 (/ -6.2831 DIVISIONS)))
    (glEnd)
 
-   ; bottom
+   ; top
+   (glColor3f 1 0 0)
    (glBegin GL_TRIANGLE_FAN)
       (glNormal3f -1 0 0)
       (glVertex3f -h 0 0)
@@ -35,6 +36,8 @@
          (iota (+ DIVISIONS 1) 0 (/ -6.2831 DIVISIONS)))
    (glEnd)
 
+   ; bottom
+   (glColor3f 0 1 0)
    (glBegin GL_TRIANGLE_FAN)
       (glNormal3f 1 0 0)
       (glVertex3f h 0 0)

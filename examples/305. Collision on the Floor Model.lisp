@@ -58,7 +58,7 @@
    ;
    ('capsule (NewtonCreateCapsule world 0.2 0.5 1  0 #f))
    ;
-   ('cylinder (NewtonCreateCapsule world 0.2 0.5 1 0 #f))
+   ('cylinder (NewtonCreateCylinder world 0.2 0.5 1 0 #f))
    ;
    ('convex (let ((vertices (monkey 'v)))
       (NewtonCreateConvexHull world (length vertices)
